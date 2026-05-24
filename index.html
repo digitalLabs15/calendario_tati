@@ -450,7 +450,20 @@
         position: absolute;
         top: 9px;
         right: 10px;
-        font-size: 13px;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--accent-gradient);
+        box-shadow: 0 0 12px rgba(0, 212, 255, 0.45);
+        color: #fff;
+        font-size: 14px;
+        line-height: 26px;
+        text-align: center;
+        z-index: 2;
+      }
+
+      .day.has-note {
+        border-color: var(--primary);
       }
 
       .day.work {
@@ -657,9 +670,12 @@
           display: none;
         }
         .note-hint {
-          top: 6px;
-          right: 7px;
+          top: 4px;
+          right: 4px;
+          width: 20px;
+          height: 20px;
           font-size: 11px;
+          line-height: 20px;
         }
         .month-title {
           font-size: 20px;
@@ -705,7 +721,10 @@
         .note-hint {
           top: 4px;
           right: 4px;
+          width: 17px;
+          height: 17px;
           font-size: 9px;
+          line-height: 17px;
         }
       }
     </style>
@@ -934,6 +953,7 @@
           const note = dayData.note.trim();
           const dayDiv = document.createElement("div");
           dayDiv.className = `day ${status}`;
+          if (note) dayDiv.classList.add("has-note");
 
           // indicador de hoje
           if (
@@ -947,7 +967,7 @@
           // conteúdo
           dayDiv.innerHTML = `
           <div class="number">${d}</div>
-          ${note ? '<div class="note-hint">📝</div>' : ""}
+          ${note ? '<div class="note-hint" title="Tem anotação">📝</div>' : ""}
           ${status ? `<div class="status" title="${status === "work" ? "Trabalhou" : escapeHTML(homeText)}" aria-label="${status === "work" ? "Trabalhou" : escapeHTML(homeText)}">${status === "work" ? "💼" : "🏡"}</div>` : ""}
           ${note ? `<div class="note-preview ${status ? "" : "empty-status"}">${escapeHTML(note)}</div>` : ""}
         `;
@@ -975,6 +995,7 @@
       const modalDateLabel = document.getElementById("modalDateLabel");
       const modalDesc = document.getElementById("modalDesc");
       const modalNoteInput = document.getElementById("modalNoteInput");
+      let noteSaveTimer = null;
 
       function openModal(dayNum) {
         if (!selectedGlobalKey) return;
@@ -990,7 +1011,27 @@
       }
 
       function closeModalViaBg(e) {
-        if (e.target === modalBg) modalBg.style.display = "none";
+        if (e.target === modalBg) {
+          saveCurrentNote(false);
+          modalBg.style.display = "none";
+          renderCalendar();
+        }
+      }
+
+      function saveCurrentNote(shouldRender) {
+        if (!selectedGlobalKey) return;
+        const data = getStorage();
+        const dayData = getDayData(data[selectedGlobalKey]);
+        const note = modalNoteInput.value.trim();
+
+        if (!dayData.status && !note) {
+          delete data[selectedGlobalKey];
+        } else {
+          data[selectedGlobalKey] = { status: dayData.status, note };
+        }
+
+        saveStorage(data);
+        if (shouldRender) renderCalendar();
       }
 
       function setStatusAndClose(statusType) {
@@ -1001,7 +1042,11 @@
         const data = getStorage();
         const note = modalNoteInput.value.trim();
         if (statusType === "") {
-          delete data[selectedGlobalKey];
+          if (note) {
+            data[selectedGlobalKey] = { status: "", note };
+          } else {
+            delete data[selectedGlobalKey];
+          }
         } else {
           data[selectedGlobalKey] = { status: statusType, note };
         }
@@ -1009,6 +1054,11 @@
         modalBg.style.display = "none";
         renderCalendar();
       }
+
+      modalNoteInput.addEventListener("input", () => {
+        clearTimeout(noteSaveTimer);
+        noteSaveTimer = setTimeout(() => saveCurrentNote(true), 250);
+      });
 
       function saveNoteAndClose() {
         if (!selectedGlobalKey) {
