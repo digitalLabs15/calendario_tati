@@ -2,12 +2,15 @@
   "name": "Calendário da Tati",
   "short_name": "Calendário",
   "description": "App para marcar dias trabalhados e dias em casa.",
-  "start_url": "./index.html",
+  "id": "./",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#0b1120",
   "theme_color": "#f472b6",
   "orientation": "portrait",
+  "categories": ["productivity", "lifestyle"],
   "icons": [
     {
       "src": "icons/icon-192.png",

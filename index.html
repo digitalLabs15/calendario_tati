@@ -7,6 +7,10 @@
 
   <meta name="theme-color" content="#f472b6" />
   <meta name="description" content="Calendário elegante para marcar dias trabalhados e dias em casa." />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Calendário da Tati" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
@@ -214,6 +218,16 @@
       color: white;
       border: none;
       font-weight: bold;
+    }
+
+    .install-btn {
+      display: none;
+    }
+
+    .install-btn.show {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .stats {
@@ -488,6 +502,7 @@
           <option value="theme-perola">🪷 Pérola Divina</option>
           <option value="theme-dark">✨ Azul Profundo</option>
         </select>
+        <button class="primary-btn install-btn" id="installAppBtn">📲 Instalar app</button>
         <button class="primary-btn" id="clearMonthBtn">🗑️ Limpar este mês</button>
       </div>
     </section>
@@ -541,6 +556,8 @@
     const personNameInput = document.getElementById('personName');
     const mainTitle = document.getElementById('mainTitle');
     const themeSelect = document.getElementById('themeSelect');
+    const installAppBtn = document.getElementById('installAppBtn');
+    let deferredInstallPrompt = null;
 
     // helpers storage
     function getStorage() {
@@ -772,6 +789,25 @@
     themeSelect.addEventListener('change', (e) => {
       applyTheme(e.target.value);
       localStorage.setItem('calendarThemeFem', e.target.value);
+    });
+
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      installAppBtn.classList.add('show');
+    });
+
+    installAppBtn.addEventListener('click', async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      installAppBtn.classList.remove('show');
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      installAppBtn.classList.remove('show');
     });
     
     // eventos botões
