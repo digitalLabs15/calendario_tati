@@ -1042,11 +1042,9 @@
         const data = getStorage();
         const note = modalNoteInput.value.trim();
         if (statusType === "") {
-          if (note) {
-            data[selectedGlobalKey] = { status: "", note };
-          } else {
-            delete data[selectedGlobalKey];
-          }
+          clearTimeout(noteSaveTimer);
+          modalNoteInput.value = "";
+          delete data[selectedGlobalKey];
         } else {
           data[selectedGlobalKey] = { status: statusType, note };
         }
