@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calendario-tati-v7';
+const CACHE_NAME = 'calendario-tati-v8';
 const FILES_TO_CACHE = [
   './',
   './index.html',

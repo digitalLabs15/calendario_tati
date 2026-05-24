@@ -714,6 +714,27 @@
             placeholder="Seu nome ou apelido"
             autocomplete="off"
           />
+          <input
+            type="text"
+            id="calendarIconInput"
+            placeholder="Ícone antes do título"
+            maxlength="4"
+            autocomplete="off"
+          />
+          <input
+            type="text"
+            id="calendarWordInput"
+            placeholder="Palavra do título"
+            maxlength="24"
+            autocomplete="off"
+          />
+          <input
+            type="text"
+            id="homeLabelInput"
+            placeholder="Texto de dias em casa"
+            maxlength="28"
+            autocomplete="off"
+          />
           <select id="themeSelect">
             <option value="theme-rose-glam">🌹 Rosa Glamour</option>
             <option value="theme-cereja">🍒 Cereja Doce</option>
@@ -738,7 +759,7 @@
           <span>💼 Dias trabalhados</span><strong id="workCount">0</strong>
         </div>
         <div class="stat">
-          <span>🏡 Dias em casa</span><strong id="homeCount">0</strong>
+          <span id="homeStatLabel">Dias em casa</span><strong id="homeCount">0</strong>
         </div>
       </section>
 
@@ -766,10 +787,7 @@
             ></i>
             Trabalhou</span
           >
-          <span
-            ><i class="dot" style="background: var(--home)"></i> Ficou em
-            casa</span
-          >
+          <span><i class="dot" style="background: var(--home)"></i> <span id="homeLegendLabel">Ficou em casa</span></span>
           <span
             ><i class="dot" style="background: var(--primary)"></i> Hoje</span
           >
@@ -822,9 +840,15 @@
       const daysGrid = document.getElementById("daysGrid");
       const monthTitleSpan = document.getElementById("monthTitle");
       const personNameInput = document.getElementById("personName");
+      const calendarIconInput = document.getElementById("calendarIconInput");
+      const calendarWordInput = document.getElementById("calendarWordInput");
+      const homeLabelInput = document.getElementById("homeLabelInput");
       const mainTitle = document.getElementById("mainTitle");
       const themeSelect = document.getElementById("themeSelect");
       const installAppBtn = document.getElementById("installAppBtn");
+      const homeStatLabel = document.getElementById("homeStatLabel");
+      const homeLegendLabel = document.getElementById("homeLegendLabel");
+      const modalHomeBtn = document.getElementById("modalHomeBtn");
       let deferredInstallPrompt = null;
 
       // helpers storage
@@ -891,6 +915,7 @@
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const storageData = getStorage();
         const today = new Date();
+        const homeText = getHomeLabel();
 
         // preencher células vazias antes do dia 1
         for (let i = 0; i < firstDayOfMonth; i++) {
@@ -923,7 +948,7 @@
           dayDiv.innerHTML = `
           <div class="number">${d}</div>
           ${note ? '<div class="note-hint">📝</div>' : ""}
-          ${status ? `<div class="status" title="${status === "work" ? "Trabalhou" : "Em casa"}" aria-label="${status === "work" ? "Trabalhou" : "Em casa"}">${status === "work" ? "💼" : "🏡"}</div>` : ""}
+          ${status ? `<div class="status" title="${status === "work" ? "Trabalhou" : escapeHTML(homeText)}" aria-label="${status === "work" ? "Trabalhou" : escapeHTML(homeText)}">${status === "work" ? "💼" : "🏡"}</div>` : ""}
           ${note ? `<div class="note-preview ${status ? "" : "empty-status"}">${escapeHTML(note)}</div>` : ""}
         `;
 
@@ -1034,34 +1059,70 @@
       }
 
       // ----- Temas com personalização e armazenamento -------------
+      function getCalendarWord() {
+        return calendarWordInput.value.trim() || "Calendário";
+      }
+
+      function getCalendarIcon() {
+        return calendarIconInput.value.trim();
+      }
+
+      function getHomeLabel() {
+        return homeLabelInput.value.trim() || "Dias em casa";
+      }
+
       function applyTheme(themeValue) {
         document.body.classList = "";
         if (themeValue !== "theme-dark") {
           document.body.classList.add(themeValue);
         }
-        updateTitleWithName();
+        updatePersonalization();
       }
 
-      function updateTitleWithName() {
-        let nome = personNameInput.value.trim();
-        mainTitle.innerText = nome ? `Calendário de ${nome}` : "Calendário";
+      function updatePersonalization() {
+        const nome = personNameInput.value.trim();
+        const calendarWord = getCalendarWord();
+        const calendarIcon = getCalendarIcon();
+        const titleText = nome ? `${calendarWord} de ${nome}` : calendarWord;
+
+        mainTitle.innerText = calendarIcon ? `${calendarIcon} ${titleText}` : titleText;
+        document.title = titleText;
+        homeStatLabel.innerText = getHomeLabel();
+        homeLegendLabel.innerText = getHomeLabel();
+        modalHomeBtn.innerText = getHomeLabel();
+
         localStorage.setItem("calendarUserName", nome);
+        localStorage.setItem("calendarIcon", calendarIcon);
+        localStorage.setItem("calendarWord", calendarWord);
+        localStorage.setItem("homeLabel", getHomeLabel());
       }
 
       // evento nome
       personNameInput.addEventListener("input", () => {
-        updateTitleWithName();
+        updatePersonalization();
         renderCalendar(); // atualiza texto do modal também indiretamente
       });
 
-      // load initial name & theme
+      calendarIconInput.addEventListener("input", updatePersonalization);
+      calendarWordInput.addEventListener("input", updatePersonalization);
+      homeLabelInput.addEventListener("input", updatePersonalization);
+
+      // load initial name, labels & theme
+      const savedCalendarIcon = localStorage.getItem("calendarIcon");
+      const savedCalendarWord = localStorage.getItem("calendarWord");
+      const savedHomeLabel = localStorage.getItem("homeLabel");
+
+      if (savedCalendarIcon) calendarIconInput.value = savedCalendarIcon;
+      calendarWordInput.value = savedCalendarWord || "Calendário";
+      homeLabelInput.value = savedHomeLabel || "Dias em casa";
+
       const savedName = localStorage.getItem("calendarUserName");
       if (savedName && savedName !== "Tati") {
         personNameInput.value = savedName;
-        updateTitleWithName();
+        updatePersonalization();
       } else {
         if (savedName === "Tati") localStorage.removeItem("calendarUserName");
-        updateTitleWithName();
+        updatePersonalization();
       }
 
       const savedTheme = localStorage.getItem("calendarThemeFem");
