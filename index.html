@@ -345,9 +345,11 @@
     .status {
       display: block;
       margin-top: 10px;
-      padding: 5px 10px;
-      border-radius: 40px;
-      font-size: 11px;
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      border-radius: 50%;
+      font-size: 16px;
       font-weight: 800;
       text-align: center;
       backdrop-filter: blur(8px);
@@ -357,6 +359,8 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      line-height: 30px;
+      align-self: center;
     }
 
     .note-preview {
@@ -516,15 +520,12 @@
       }
       .number { font-size: 0.95rem; }
       .status {
-        font-size: 0;
         width: 22px;
         height: 22px;
         padding: 0;
         margin: 7px auto 0;
         border-radius: 50%;
         line-height: 22px;
-      }
-      .status::first-letter {
         font-size: 12px;
       }
       .note-preview {
@@ -554,8 +555,6 @@
         height: 18px;
         margin-top: 5px;
         line-height: 18px;
-      }
-      .status::first-letter {
         font-size: 10px;
       }
       .note-preview {
@@ -737,7 +736,7 @@
         dayDiv.innerHTML = `
           <div class="number">${d}</div>
           ${note ? '<div class="note-hint">📝</div>' : ''}
-          ${status ? `<div class="status">${status === 'work' ? '💼 Trabalhou' : '🏡 Em casa'}</div>` : ''}
+          ${status ? `<div class="status" title="${status === 'work' ? 'Trabalhou' : 'Em casa'}">${status === 'work' ? '💼' : '🏡'}</div>` : ''}
           ${note ? `<div class="note-preview ${status ? '' : 'empty-status'}">${escapeHTML(note)}</div>` : ''}
         `;
         
