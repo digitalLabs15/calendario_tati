@@ -724,21 +724,8 @@
         <div class="controls">
           <input
             type="text"
-            id="personName"
-            placeholder="Seu nome ou apelido"
-            autocomplete="off"
-          />
-          <input
-            type="text"
-            id="calendarIconInput"
-            placeholder="Ícone antes do título"
-            maxlength="4"
-            autocomplete="off"
-          />
-          <input
-            type="text"
             id="calendarWordInput"
-            placeholder="Palavra do título"
+            placeholder="Seu nome ou apelido"
             maxlength="24"
             autocomplete="off"
           />
@@ -854,8 +841,6 @@
       ];
       const daysGrid = document.getElementById("daysGrid");
       const monthTitleSpan = document.getElementById("monthTitle");
-      const personNameInput = document.getElementById("personName");
-      const calendarIconInput = document.getElementById("calendarIconInput");
       const calendarWordInput = document.getElementById("calendarWordInput");
       const homeLabelInput = document.getElementById("homeLabelInput");
       const mainTitle = document.getElementById("mainTitle");
@@ -996,8 +981,8 @@
         const monthName = monthsNames[currentDisplayDate.getMonth()];
         const dayData = getDayData(getStorage()[selectedGlobalKey]);
         modalDateLabel.innerText = `Dia ${dayNum} de ${monthName}`;
-        const nome = personNameInput.value.trim();
-        modalDesc.innerHTML = nome
+        const nome = getCalendarWord();
+        modalDesc.innerHTML = nome && nome !== "Calendário"
           ? `O que ${nome} fez nesse dia?`
           : "O que aconteceu nesse dia?";
         modalNoteInput.value = dayData.note;
@@ -1078,10 +1063,6 @@
         return calendarWordInput.value.trim() || "Calendário";
       }
 
-      function getCalendarIcon() {
-        return calendarIconInput.value.trim();
-      }
-
       function getHomeLabel() {
         return homeLabelInput.value.trim() || "Dias em casa";
       }
@@ -1095,50 +1076,35 @@
       }
 
       function updatePersonalization() {
-        const nome = personNameInput.value.trim();
-        const calendarWord = getCalendarWord();
-        const calendarIcon = getCalendarIcon();
-        const titleText = nome ? `${calendarWord} de ${nome}` : calendarWord;
+        const titleText = getCalendarWord();
 
-        mainTitle.innerText = calendarIcon ? `${calendarIcon} ${titleText}` : titleText;
+        mainTitle.innerText = titleText;
         document.title = titleText;
         homeStatLabel.innerText = getHomeLabel();
         homeLegendLabel.innerText = getHomeLabel();
         modalHomeBtn.innerText = getHomeLabel();
 
-        localStorage.setItem("calendarUserName", nome);
-        localStorage.setItem("calendarIcon", calendarIcon);
-        localStorage.setItem("calendarWord", calendarWord);
+        localStorage.setItem("calendarWord", titleText);
         localStorage.setItem("homeLabel", getHomeLabel());
       }
 
-      // evento nome
-      personNameInput.addEventListener("input", () => {
+      calendarWordInput.addEventListener("input", () => {
         updatePersonalization();
-        renderCalendar(); // atualiza texto do modal também indiretamente
+        renderCalendar();
       });
-
-      calendarIconInput.addEventListener("input", updatePersonalization);
-      calendarWordInput.addEventListener("input", updatePersonalization);
       homeLabelInput.addEventListener("input", updatePersonalization);
 
       // load initial name, labels & theme
-      const savedCalendarIcon = localStorage.getItem("calendarIcon");
       const savedCalendarWord = localStorage.getItem("calendarWord");
       const savedHomeLabel = localStorage.getItem("homeLabel");
-
-      if (savedCalendarIcon) calendarIconInput.value = savedCalendarIcon;
-      calendarWordInput.value = savedCalendarWord || "Calendário";
-      homeLabelInput.value = savedHomeLabel || "Dias em casa";
-
       const savedName = localStorage.getItem("calendarUserName");
-      if (savedName && savedName !== "Tati") {
-        personNameInput.value = savedName;
-        updatePersonalization();
-      } else {
-        if (savedName === "Tati") localStorage.removeItem("calendarUserName");
-        updatePersonalization();
-      }
+
+      calendarWordInput.value =
+        savedName && savedName !== "Tati" ? savedName : savedCalendarWord || "Calendário";
+      homeLabelInput.value = savedHomeLabel || "Dias em casa";
+      localStorage.removeItem("calendarIcon");
+      localStorage.removeItem("calendarUserName");
+      updatePersonalization();
 
       const savedTheme = localStorage.getItem("calendarThemeFem");
       if (savedTheme) {
